@@ -53,7 +53,7 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "or",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1] | cpu.registers[inst.rs2])
+                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1]| cpu.registers[inst.rs2])
                 end
             }
         },
@@ -80,6 +80,84 @@ local INSTRUCTIONS = {
                     local result = a * b
                     cpu:writeReg(inst.rd, result >> 32)
                 end
+            },
+            [0x2] = {
+                name = "mulhsu",
+                exec = function(inst, cpu)
+                    local a = numberUtils.i32ToI64(cpu.registers[inst.rs1])
+                    local b = cpu.registers[inst.rs2]
+                    local result = a * b
+                    cpu:writeReg(inst.rd, result >> 32)
+                end
+            },
+            [0x3] = {
+                name = "mulhu",
+                exec = function(inst, cpu)
+                    local a = cpu.registers[inst.rs1]
+                    local b = cpu.registers[inst.rs2]
+                    local result = a * b
+                    cpu:writeReg(inst.rd, result >> 32)
+                end
+            },
+            [0x4] = {
+                name = "div",
+                exec = function(inst, cpu)
+                    local a = numberUtils.i32ToI64(cpu.registers[inst.rs1])
+                    local b = numberUtils.i32ToI64(cpu.registers[inst.rs2])
+
+                    if b == 0 then
+                        cpu:writeReg(inst.rd, 0xFFFFFFFF)
+                        return
+                    end
+
+                    local result = numberUtils.intDiv(a, b)
+                    cpu:writeReg(inst.rd, result)
+                end
+            },
+            [0x5] = {
+                name = "divu",
+                exec = function(inst, cpu)
+                    local a = cpu.registers[inst.rs1]
+                    local b = cpu.registers[inst.rs2]
+
+                    if b == 0 then
+                        cpu:writeReg(inst.rd, 0xFFFFFFFF)
+                        return
+                    end
+
+                    local result = numberUtils.intDiv(a, b)
+                    cpu:writeReg(inst.rd, result)
+                end
+            },
+            [0x6] = {
+                name = "rem",
+                exec = function(inst, cpu)
+                    local a = numberUtils.i32ToI64(cpu.registers[inst.rs1])
+                    local b = numberUtils.i32ToI64(cpu.registers[inst.rs2])
+
+                    if b == 0 then
+                        cpu:writeReg(inst.rd, 0)
+                        return
+                    end
+
+                    local result = numberUtils.mod(a, b)
+                    cpu:writeReg(inst.rd, result)
+                end
+            },
+            [0x7] = {
+                name = "remu",
+                exec = function(inst, cpu)
+                    local a = cpu.registers[inst.rs1]
+                    local b = cpu.registers[inst.rs2]
+
+                    if b == 0 then
+                        cpu:writeReg(inst.rd, 0)
+                        return
+                    end
+
+                    local result = a % b
+                    cpu:writeReg(inst.rd, result)
+                end
             }
         },
         [0x5] = {
@@ -101,7 +179,9 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "slt",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, (numberUtils.i32ToI64(cpu.registers[inst.rs1]) < numberUtils.i32ToI64(cpu.registers[inst.rs2])) and 1 or 0)
+                    cpu:writeReg(inst.rd,
+                        (numberUtils.i32ToI64(cpu.registers[inst.rs1]) < numberUtils.i32ToI64(cpu.registers[inst.rs2])) and
+                        1 or 0)
                 end
             }
         },
@@ -137,7 +217,7 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "ori",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1] | inst.imm)
+                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1]| inst.imm)
                 end
             }
         },
@@ -176,7 +256,8 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "slti",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, (numberUtils.i12ToI64(cpu.registers[inst.rs1]) < numberUtils.i12ToI64(inst.imm)) and 1 or 0)
+                    cpu:writeReg(inst.rd,
+                        (numberUtils.i12ToI64(cpu.registers[inst.rs1]) < numberUtils.i12ToI64(inst.imm)) and 1 or 0)
                 end
             }
         },
@@ -349,7 +430,9 @@ local INSTRUCTIONS = {
                 name = "jalr",
                 exec = function(inst, cpu)
                     cpu:writeReg(inst.rd, cpu.registers.pc + 4)
-                    cpu:writeReg('pc', numberUtils.i32ToI64(cpu.registers.pc) + numberUtils.i32ToI64(cpu.registers[inst.rs1]) + numberUtils.i12ToI64(inst.imm))
+                    cpu:writeReg('pc',
+                        numberUtils.i32ToI64(cpu.registers.pc) + numberUtils.i32ToI64(cpu.registers[inst.rs1]) +
+                        numberUtils.i12ToI64(inst.imm))
                 end
             }
         }

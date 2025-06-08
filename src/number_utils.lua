@@ -64,4 +64,29 @@ function mod.parseSignedIntFrom12Bits(x)
     end
 end
 
+function mod.intDiv(a, b)
+    if a >= 0 then
+        return (a - a % b) / b
+    end
+
+    return (a + a % b) / b
+end
+
+-- This function does a % b, but handles negative numbers the way it works in C,
+-- with the sign of quotient matching the sign of dividend:
+--     -10 % 3 = -1 (Lua would return 2)
+--     10 % -3 = 1 (Lua would return -2)
+--     -10 % -3 = -1 (matches Lua result)
+function mod.mod(a, b)
+    if a < 0 and b > 0 then
+        return -(-a % b)
+    end
+
+    if a >= 0 and b < 0 then
+        return a % -b
+    end
+
+    return a % b
+end
+
 return mod

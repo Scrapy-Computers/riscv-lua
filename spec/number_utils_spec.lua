@@ -36,3 +36,35 @@ describe("parseSignedIntFrom12Bits", function()
         assert.are.equal(-1, u.parseSignedIntFrom12Bits(0xFFF))
     end)
 end)
+
+describe('intDiv', function()
+    it("4 / 2 = 2", function()
+        assert.are.equal(2, u.intDiv(4, 2))
+    end)
+
+    it("5 / 2 = 2", function()
+        assert.are.equal(2, u.intDiv(5, 2))
+    end)
+
+    it("-5 / 2 = -2", function()
+        assert.are.equal(-2, u.intDiv(-5, 2))
+    end)
+end)
+
+describe('mod', function()
+    it('10 % 3 = 1', function()
+        assert.are.equal(1, u.mod(10, 3))
+    end)
+
+    it('-10 % 3 = -1', function()
+        assert.are.equal(-1, u.mod(-10, 3))
+    end)
+
+    it('10 % -3 = 1', function()
+        assert.are.equal(1, u.mod(10, -3))
+    end)
+
+    it('-10 % -3 = -1', function()
+        assert.are.equal(-1, u.mod(-10, -3))
+    end)
+end)
