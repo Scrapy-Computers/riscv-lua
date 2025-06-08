@@ -9,6 +9,11 @@ describe("i32ToI64", function()
     it("converts 1i32 to 1i64", function()
         assert.are.equal(1, u.i32ToI64(1))
     end)
+
+    it("converts 0xAAAAAAAAi32 to 0xFFFFFFFFAAAAAAAAi64", function()
+        local testValue = 0xAAAAAAAA
+        assert.are.equal(-0x55555556, u.i32ToI64(testValue))
+    end)
 end)
 
 describe("i12ToI64", function()
