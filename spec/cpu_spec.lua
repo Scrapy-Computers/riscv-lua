@@ -45,4 +45,46 @@ describe("CPU", function()
         assert.are.equal(10, cpu.registers[1])
         assert.are.equal(4, cpu.registers.pc)
     end)
+
+    describe("environment call handler", function()
+        it("skips ECALL instruction by default", function()
+            local cpu = CPU.new()
+            local memory = Memory.new(100)
+
+            memory:write(
+                0,
+                string.char(
+                    0x93, 0x00, 0xa0, 0x00, -- addi x1, x0, 10
+                    0x73, 0x00, 0x00, 0x00, -- ecall
+                    0x93, 0x80, 0xb0, 0xff  -- addi x1, x1, -5
+                )
+            )
+
+            cpu:tick(memory)
+            cpu:tick(memory)
+            cpu:tick(memory)
+            assert.are.equal(5, cpu.registers[1])
+        end)
+
+        it("calls the handler if it is defined", function()
+            local cpu = CPU.new()
+            local memory = Memory.new(100)
+
+            memory:write(
+                0,
+                string.char(
+                    0x73, 0x00, 0x00, 0x00 -- ecall
+                )
+            )
+
+            local ecallHanderCalled = false
+
+            cpu.ecallHandler = function()
+                ecallHanderCalled = true
+            end
+
+            cpu:tick(memory)
+            assert.is_true(ecallHanderCalled)
+        end)
+    end)
 end)

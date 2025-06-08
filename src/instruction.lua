@@ -458,6 +458,17 @@ local INSTRUCTIONS = {
                 end
             }
         }
+    },
+
+    [Opcode.CONTROL_TRANSFER] = {
+        [0x0] = {
+            [0x0] = {
+                name = "ecall",
+                exec = function(inst, cpu)
+                    cpu.ecallHandler()
+                end
+            }
+        }
     }
 }
 
@@ -475,12 +486,13 @@ function mod.getOpcodeAndFuncsForMnemonic(mnemonic)
 end
 
 local INSTRUCTION_FORMATS = {
-    [0x13] = "I",
-    [0x23] = "S",
-    [0x33] = "R",
-    [0x63] = "B",
-    [0x37] = "U",
-    [0x6F] = "J"
+    [Opcode.ARITHMETIC_WITH_IMMEDIATES] = "I",
+    [Opcode.STORE] = "S",
+    [Opcode.ARITHMETIC_WITH_REGISTERS] = "R",
+    [Opcode.BRANCH] = "B",
+    [Opcode.LUI] = "U",
+    [Opcode.JAL] = "J",
+    [Opcode.CONTROL_TRANSFER] = "I",
 }
 
 local FORMAT_PARSERS = {

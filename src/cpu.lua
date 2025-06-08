@@ -8,7 +8,8 @@ function mod.CPU.new()
     local cpu = {
         registers = {
             pc = 0
-        }
+        },
+        ecallHandler = function() end,
     }
 
     cpu.registers[0] = 0
