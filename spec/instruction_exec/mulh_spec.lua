@@ -33,7 +33,7 @@ describe("mulh", function()
     end)
 
     it("high bits", function()
-        cpu.registers[1] = 0xAAAAAAAA
+        cpu.registers[1] = 0xAAAAAAAA -- -1431655766
         cpu.registers[2] = 0xAAAAAAAA
         instructionData.rd = 1
         instructionData.rs1 = 1
@@ -42,6 +42,7 @@ describe("mulh", function()
 
         inst:exec(cpu)
 
-        assert.are.equal(0x71C71C70, cpu.registers[1])
+        -- -1431655766 * -1431655766 = 2,049,638,232,321,046,756 = 0x1C71C71C_E38E38E4
+        assert.are.equal(0x1C71C71C, cpu.registers[1])
     end)
 end)
