@@ -1,6 +1,6 @@
-local mod = {}
+local m = {}
 
-function mod.i32ToI64(x)
+function m.i32ToI64(x)
     local sign = x & 0x80000000
     if sign == 0 then
         return x
@@ -9,7 +9,7 @@ function mod.i32ToI64(x)
     end
 end
 
-function mod.i21ToI64(x)
+function m.i21ToI64(x)
     local sign = x & 0x100000
     if sign == 0 then
         return x
@@ -18,7 +18,7 @@ function mod.i21ToI64(x)
     end
 end
 
-function mod.i16ToI64(x)
+function m.i16ToI64(x)
     local sign = x & 0x8000
     if sign == 0 then
         return x
@@ -27,7 +27,7 @@ function mod.i16ToI64(x)
     end
 end
 
-function mod.i13ToI64(x)
+function m.i13ToI64(x)
     local sign = x & 0x1000
     if sign == 0 then
         return x
@@ -36,7 +36,7 @@ function mod.i13ToI64(x)
     end
 end
 
-function mod.i12ToI64(x)
+function m.i12ToI64(x)
     local sign = x & 0x800
     if sign == 0 then
         return x
@@ -45,7 +45,7 @@ function mod.i12ToI64(x)
     end
 end
 
-function mod.i8ToI64(x)
+function m.i8ToI64(x)
     local sign = x & 0x80
     if sign == 0 then
         return x
@@ -54,7 +54,7 @@ function mod.i8ToI64(x)
     end
 end
 
-function mod.parseSignedIntFrom12Bits(x)
+function m.parseSignedIntFrom12Bits(x)
     local sign = x & 0x800
     local number = x & 0x7FF
     if sign == 0 then
@@ -64,7 +64,7 @@ function mod.parseSignedIntFrom12Bits(x)
     end
 end
 
-function mod.intDiv(a, b)
+function m.intDiv(a, b)
     if a >= 0 then
         return (a - a % b) / b
     end
@@ -77,7 +77,7 @@ end
 --     -10 % 3 = -1 (Lua would return 2)
 --     10 % -3 = 1 (Lua would return -2)
 --     -10 % -3 = -1 (matches Lua result)
-function mod.mod(a, b)
+function m.mod(a, b)
     if a < 0 and b > 0 then
         return -(-a % b)
     end
@@ -89,4 +89,4 @@ function mod.mod(a, b)
     return a % b
 end
 
-return mod
+riscv_number_util = m

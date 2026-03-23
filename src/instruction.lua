@@ -1,8 +1,7 @@
-local numberUtils = require("number_utils")
+dofile "number_utils.lua"
+local numberUtils = riscv_number_util
 
-local mod = {}
-
-mod.Instruction = {}
+local m = {}
 
 local Opcode = {
     ARITHMETIC_WITH_REGISTERS = 0x33,
@@ -69,7 +68,7 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "sll",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1] << cpu.registers[inst.rs2])
+                    cpu:writeReg(inst.rd, bit.lshift(cpu.registers[inst.rs1], cpu.registers[inst.rs2]))
                 end
             },
             [0x1] = {
@@ -78,7 +77,7 @@ local INSTRUCTIONS = {
                     local a = numberUtils.i32ToI64(cpu.registers[inst.rs1])
                     local b = numberUtils.i32ToI64(cpu.registers[inst.rs2])
                     local result = a * b
-                    cpu:writeReg(inst.rd, result >> 32)
+                    cpu:writeReg(inst.rd, bit.rshift(result, 32))
                 end
             },
             [0x2] = {
@@ -87,7 +86,7 @@ local INSTRUCTIONS = {
                     local a = numberUtils.i32ToI64(cpu.registers[inst.rs1])
                     local b = cpu.registers[inst.rs2]
                     local result = a * b
-                    cpu:writeReg(inst.rd, result >> 32)
+                    cpu:writeReg(inst.rd, bit.rshift(result, 32))
                 end
             },
             [0x3] = {
@@ -96,7 +95,7 @@ local INSTRUCTIONS = {
                     local a = cpu.registers[inst.rs1]
                     local b = cpu.registers[inst.rs2]
                     local result = a * b
-                    cpu:writeReg(inst.rd, result >> 32)
+                    cpu:writeReg(inst.rd, bit.rshift(result, 32))
                 end
             },
             [0x4] = {
@@ -164,14 +163,14 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "srl",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1] >> cpu.registers[inst.rs2])
+                    cpu:writeReg(inst.rd, bit.rshift(cpu.registers[inst.rs1], cpu.registers[inst.rs2]))
                 end
             },
             [0x20] = {
                 name = "sra",
                 exec = function(inst, cpu)
                     local msb = cpu.registers[inst.rs1] & 0x80000000
-                    cpu:writeReg(inst.rd, (cpu.registers[inst.rs1] >> cpu.registers[inst.rs2]) | msb)
+                    cpu:writeReg(inst.rd, bit.rshift(cpu.registers[inst.rs1], cpu.registers[inst.rs2]) | msb)
                 end
             },
         },
@@ -233,7 +232,7 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "slli",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1] << inst.imm)
+                    cpu:writeReg(inst.rd, bit.lshift(cpu.registers[inst.rs1], inst.imm))
                 end
             }
         },
@@ -241,14 +240,14 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "srli",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers[inst.rs1] >> inst.imm)
+                    cpu:writeReg(inst.rd, bit.rshift(cpu.registers[inst.rs1], inst.imm))
                 end
             },
             [0x400] = {
                 name = "srai",
                 exec = function(inst, cpu)
                     local msb = cpu.registers[inst.rs1] & 0x80000000
-                    cpu:writeReg(inst.rd, (cpu.registers[inst.rs1] >> inst.imm) | msb)
+                    cpu:writeReg(inst.rd, bit.rshift(cpu.registers[inst.rs1], inst.imm) | msb)
                 end
             },
         },
@@ -443,7 +442,7 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "lui",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, inst.imm << 12)
+                    cpu:writeReg(inst.rd, bit.lshift(inst.imm, 12))
                 end
             }
         }
@@ -454,7 +453,7 @@ local INSTRUCTIONS = {
             [0x0] = {
                 name = "auipc",
                 exec = function(inst, cpu)
-                    cpu:writeReg(inst.rd, cpu.registers.pc + (inst.imm << 12))
+                    cpu:writeReg(inst.rd, cpu.registers.pc + bit.lshift(inst.imm, 12))
                 end
             }
         }
@@ -499,67 +498,67 @@ local FORMAT_PARSERS = {
     R = function(opcode, instruction)
         return {
             opcode = opcode,
-            rd = instruction >> 7 & 0x1F,
-            funct3 = instruction >> 12 & 0x7,
-            rs1 = (instruction >> 15) & 0x1F,
-            rs2 = (instruction >> 20) & 0x1F,
-            funct7 = instruction >> 25
+            rd = bit.rshift(instruction, 7) & 0x1F,
+            funct3 = bit.rshift(instruction, 12) & 0x7,
+            rs1 = bit.rshift(instruction, 15) & 0x1F,
+            rs2 = bit.rshift(instruction, 20) & 0x1F,
+            funct7 = bit.rshift(instruction, 25)
         }
     end,
     I = function(opcode, instruction)
         return {
             opcode = opcode,
-            rd = instruction >> 7 & 0x1F,
-            funct3 = instruction >> 12 & 0x7,
+            rd = bit.rshift(instruction, 7) & 0x1F,
+            funct3 = bit.rshift(instruction, 12) & 0x7,
             funct7 = 0,
-            rs1 = (instruction >> 15) & 0x1F,
-            imm = numberUtils.parseSignedIntFrom12Bits(instruction >> 20),
+            rs1 = bit.rshift(instruction, 15) & 0x1F,
+            imm = numberUtils.parseSignedIntFrom12Bits(bit.rshift(instruction, 20)),
         }
     end,
     S = function(opcode, instruction)
-        local imm1 = instruction >> 7 & 0x1F
-        local imm2 = instruction >> 25
+        local imm1 = bit.rshift(instruction, 7) & 0x1F
+        local imm2 = bit.rshift(instruction, 25)
         return {
             opcode = opcode,
-            imm = imm1 | (imm2 << 5),
-            funct3 = instruction >> 12 & 0x7,
+            imm = imm1 | bit.lshift(imm2, 5),
+            funct3 = bit.rshift(instruction, 12) & 0x7,
             funct7 = 0,
-            rs1 = (instruction >> 15) & 0x1F,
-            rs2 = (instruction >> 20) & 0x1F,
+            rs1 = bit.rshift(instruction, 15) & 0x1F,
+            rs2 = bit.rshift(instruction, 20) & 0x1F,
         }
     end,
     B = function(opcode, instruction)
-        local immBit11 = instruction >> 7 & 0x1
-        local immBit4_1 = instruction >> 8 & 0xF
-        local immBit10_5 = instruction >> 25 & 0x1f
-        local immBit12 = instruction >> 31
+        local immBit11 = bit.rshift(instruction, 7) & 0x1
+        local immBit4_1 = bit.rshift(instruction, 8) & 0xF
+        local immBit10_5 = bit.rshift(instruction, 25) & 0x1f
+        local immBit12 = bit.rshift(instruction, 31)
         return {
             opcode = opcode,
-            imm = immBit4_1 << 1 | immBit10_5 << 5 | immBit11 << 11 | immBit12 << 12,
-            funct3 = instruction >> 12 & 0x7,
+            imm = bit.lshift(immBit4_1, 1) | bit.lshift(immBit10_5, 5) | bit.lshift(immBit11, 11) | bit.lshift(immBit12, 12),
+            funct3 = bit.rshift(instruction, 12) & 0x7,
             funct7 = 0,
-            rs1 = (instruction >> 15) & 0x1F,
-            rs2 = (instruction >> 20) & 0x1F,
+            rs1 = bit.rshift(instruction, 15) & 0x1F,
+            rs2 = bit.rshift(instruction, 20) & 0x1F,
         }
     end,
     U = function(opcode, instruction)
         return {
             opcode = opcode,
-            rd = instruction >> 7 & 0x1F,
+            rd = bit.rshift(instruction, 7) & 0x1F,
             imm = instruction & 0xfffff000,
             funct3 = 0,
             funct7 = 0,
         }
     end,
     J = function(opcode, instruction)
-        local imm19_12 = instruction >> 12 & 0xff
-        local imm11 = instruction >> 20 & 0x1
-        local imm10_1 = instruction >> 21 & 0x3ff
-        local imm20 = instruction >> 31
+        local imm19_12 = bit.rshift(instruction, 12) & 0xff
+        local imm11 = bit.rshift(instruction, 20) & 0x1
+        local imm10_1 = bit.rshift(instruction, 21) & 0x3ff
+        local imm20 = bit.rshift(instruction, 31)
         return {
             opcode = opcode,
-            rd = instruction >> 7 & 0x1F,
-            imm = imm19_12 << 12 | imm11 << 11 | imm10_1 << 1 | imm20 << 20,
+            rd = bit.rshift(instruction, 7) & 0x1F,
+            imm = bit.lshift(imm19_12, 12) | bit.lshift(imm11, 11) | bit.lshift(imm10_1, 1) | bit.lshift(imm20, 20),
             funct3 = 0,
             funct7 = 0,
         }
@@ -568,25 +567,29 @@ local FORMAT_PARSERS = {
 
 --- Parse an instruction from a number.
 -- @return An Instruction instance, or nil if the instruction is illegal.
-function mod.Instruction.new(instruction)
+function m.Instruction(instruction)
+    local inst = {}
+
     if type(instruction) == "number" then
         local opcode = instruction & 0x7F
         local format = INSTRUCTION_FORMATS[opcode]
         local parser = FORMAT_PARSERS[format]
         if parser then
-            return setmetatable(parser(opcode, instruction), { __index = mod.Instruction })
+            inst = parser(opcode, instruction)
         end
         error("Illegal instruction: " .. string.format("%x", instruction))
     elseif type(instruction) == "table" then
-        return setmetatable(instruction, { __index = mod.Instruction })
+        inst = instruction
     end
+
+    function inst:exec(cpu, memory)
+        local instruction = INSTRUCTIONS[self.opcode][self.funct3][self.funct7]
+        if instruction then
+            instruction.exec(self, cpu, memory)
+        end
+    end
+
+    return inst
 end
 
-function mod.Instruction:exec(cpu, memory)
-    local instruction = INSTRUCTIONS[self.opcode][self.funct3][self.funct7]
-    if instruction then
-        instruction.exec(self, cpu, memory)
-    end
-end
-
-return mod
+riscv_instruction = m

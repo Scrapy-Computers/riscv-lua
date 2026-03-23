@@ -1,10 +1,8 @@
-local Instruction = require("instruction").Instruction
+dofile "instruction.lua"
 
-local mod = {}
+local m = {}
 
-mod.CPU = {}
-
-function mod.CPU.new()
+function m.CPU()
     local cpu = {
         registers = {
             pc = 0
@@ -17,18 +15,18 @@ function mod.CPU.new()
         cpu.registers[i] = 0
     end
 
-    return setmetatable(cpu, { __index = mod.CPU })
+    function cpu:tick(memory)
+        local instruction = riscv_instruction.Instruction(memory:readWord(self.registers.pc))
+        instruction:exec(self, memory)
+        self.registers.pc = self.registers.pc + 4
+    end
+
+    function cpu:writeReg(reg, value)
+        self.registers[reg] = value & 0xFFFFFFFF
+        self.registers[0] = 0
+    end
+
+    return cpu
 end
 
-function mod.CPU:tick(memory)
-    local instruction = Instruction.new(memory:readWord(self.registers.pc))
-    instruction:exec(self, memory)
-    self.registers.pc = self.registers.pc + 4
-end
-
-function mod.CPU:writeReg(reg, value)
-    self.registers[reg] = value & 0xFFFFFFFF
-    self.registers[0] = 0
-end
-
-return mod
+riscv_cpu = m

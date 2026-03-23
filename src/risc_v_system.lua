@@ -1,27 +1,25 @@
-local CPU = require("cpu").CPU
-local Memory = require("memory").Memory
+dofile "cpu.lua"
+dofile "memory.lua"
 
-local mod = {}
+local m = {}
 
-mod.System = {}
-
-function mod.System.new(spec)
-    local self = {
-        memory = Memory.new(spec.memorySize),
-        cpu = CPU.new()
+function m.System(spec)
+    local system= {
+        memory = riscv_memory.Memory(spec.memorySize or 2048),
+        cpu = riscv_cpu.CPU()
     }
 
-    return setmetatable(self, { __index = mod.System })
-end
-
-function mod.System:load(address, data)
-    self.memory:write(address, data)
-end
-
-function mod.System:runTicks(ticks)
-    for i = 1, ticks do
-        self.cpu:tick(self.memory)
+    function system:load(address, data)
+        self.memory:write(address, data)
     end
+
+    function system:runTicks(ticks)
+        for i = 1, ticks do
+            self.cpu:tick(self.memory)
+        end
+    end
+
+    return system
 end
 
-return mod
+riscv_lua = m
